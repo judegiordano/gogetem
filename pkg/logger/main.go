@@ -6,6 +6,10 @@ func SetLogLevel(level log.Level) {
 	log.SetLevel(level)
 }
 
+func GetLogLevel() log.Level {
+	return log.GetLevel()
+}
+
 func Info(msg interface{}, keyvals ...interface{}) {
 	log.Info(msg, keyvals)
 }
