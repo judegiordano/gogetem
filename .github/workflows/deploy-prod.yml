@@ -28,3 +28,6 @@ jobs:
           go clean
           go mod tidy
           go mod download
+
+      - name: run test suite
+        run: go test ./...
