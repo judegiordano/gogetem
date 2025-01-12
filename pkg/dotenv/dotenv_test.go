@@ -15,7 +15,10 @@ func TestNormalizeString(t *testing.T) {
 
 func TestGetString(t *testing.T) {
 	os.Clearenv()
-	os.Setenv("should_exist", "value")
+	if err := os.Setenv("should_exist", "value"); err != nil {
+		t.Errorf("error setting env: %v", err)
+	}
+	Load()
 	found := String("should_exist")
 	assert.NotNil(t, found)
 	assert.Equal(t, *found, "value")
@@ -23,6 +26,7 @@ func TestGetString(t *testing.T) {
 
 func TestGetNilString(t *testing.T) {
 	os.Clearenv()
+	Load()
 	found := String("does_not_exist")
 	assert.Nil(t, found)
 }
