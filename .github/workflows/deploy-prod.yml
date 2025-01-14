@@ -30,4 +30,6 @@ jobs:
           go mod download
 
       - name: run test suite
-        run: go test ./... -v
+        run: |
+          go clean -testcache
+          go test ./... -v
