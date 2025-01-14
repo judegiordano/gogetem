@@ -17,6 +17,7 @@ func Load() {
 
 func String(key string) *string {
 	normalized := normalizeKey(key)
+	println("normalized: ", normalized)
 	value, found := os.LookupEnv(normalized)
 	if !found {
 		logger.Warn(fmt.Sprintf(".env %v not set", normalized))

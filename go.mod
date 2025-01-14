@@ -1,6 +1,6 @@
 module github.com/judegiordano/gogetem
 
-go 1.23.4
+go 1.23
 
 require (
 	github.com/charmbracelet/log v0.4.0
