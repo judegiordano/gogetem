@@ -57,6 +57,6 @@ func Bool(key string) *bool {
 func init() {
 	logger.Debug("loading .env...")
 	if err := godotenv.Load(); err != nil {
-		logger.Debug("no .env present: [%v]", err)
+		logger.Warn("no .env present: [%v]", err)
 	}
 }
