@@ -128,3 +128,25 @@ func InsertMany[model interface{}](docs []model, opts ...*options.InsertManyOpti
 	}
 	return docs, nil
 }
+
+func UpdateOne[model interface{}](filter interface{}, updates interface{}, opts ...*options.FindOneAndUpdateOptions) (*model, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	collName := collectionName[model]()
+	coll := Client.Database(*Database).Collection(collName)
+	var out model
+	after := options.After
+	options := append(opts, &options.FindOneAndUpdateOptions{
+		ReturnDocument: &after,
+	})
+	result := coll.FindOneAndUpdate(ctx, filter, updates, options...)
+	if result == nil {
+		logger.Error("[MONGO UPDATE_ONE]", "no documents found")
+		return nil, errors.New("no document found")
+	}
+	if err := result.Decode(&out); err != nil {
+		logger.Error("[MONGO UPDATE_ONE]", err)
+		return nil, err
+	}
+	return &out, nil
+}

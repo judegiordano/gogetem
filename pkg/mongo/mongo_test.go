@@ -155,3 +155,20 @@ func TestInsertMany(t *testing.T) {
 		assert.Equal(t, doc.Name, "bulk_written_username")
 	}
 }
+
+func TestUpdateOne(t *testing.T) {
+	user := mockUser()
+	inserted, err := Insert[User](user)
+	assert.Nil(t, err)
+	assert.NotNil(t, inserted)
+	// update
+	filter := bson.M{"_id": inserted.Id}
+	updates := bson.M{
+		"$set": bson.M{"name": "new_name"},
+	}
+	updated, err := UpdateOne[User](filter, updates)
+	assert.Nil(t, err)
+	assert.NotNil(t, updated)
+	assert.Equal(t, updated.Name, "new_name")
+	assert.Equal(t, updated.Id, inserted.Id)
+}
