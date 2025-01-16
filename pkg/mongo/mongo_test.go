@@ -1,9 +1,11 @@
 package mongo
 
 import (
+	"errors"
 	"testing"
 	"time"
 
+	"github.com/judegiordano/gogetem/pkg/logger"
 	"github.com/judegiordano/gogetem/pkg/nanoid"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
@@ -33,25 +35,14 @@ type User struct {
 	UpdatedAt time.Time `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
 }
 
-func TestCollectionName(t *testing.T) {
-	name := collectionName[User]()
-	assert.Equal(t, name, "users")
-}
-
-func TestClientConnection(t *testing.T) {
-	assert.NotNil(t, Client)
-}
-
-func TestDb(t *testing.T) {
-	assert.NotNil(t, Database)
-}
-
-func TestInsertOne(t *testing.T) {
+func mockUser() User {
 	id, err := nanoid.New()
-	assert.Nil(t, err)
+	if err != nil {
+		logger.Fatal("error mocking user: ", err)
+	}
 	u := new(string)
 	*u = "old_username"
-	user := User{
+	return User{
 		Id:      id,
 		Name:    "judeboy",
 		Age:     27,
@@ -74,6 +65,23 @@ func TestInsertOne(t *testing.T) {
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
 	}
+}
+
+func TestCollectionName(t *testing.T) {
+	name := collectionName[User]()
+	assert.Equal(t, name, "users")
+}
+
+func TestClientConnection(t *testing.T) {
+	assert.NotNil(t, Client)
+}
+
+func TestDb(t *testing.T) {
+	assert.NotNil(t, Database)
+}
+
+func TestInsertOne(t *testing.T) {
+	user := mockUser()
 	inserted, err := Insert[User](user)
 	assert.Nil(t, err)
 	assert.NotNil(t, inserted)
@@ -85,5 +93,65 @@ func TestList(t *testing.T) {
 	assert.Nil(t, err)
 	for _, doc := range docs {
 		assert.NotNil(t, doc.Id)
+	}
+}
+
+func TestRead(t *testing.T) {
+	user := mockUser()
+	inserted, err := Insert[User](user)
+	assert.Nil(t, err)
+	// read
+	filter := bson.M{"_id": inserted.Id}
+	doc, err := Read[User](filter)
+	assert.Nil(t, err)
+	assert.Equal(t, doc.Id, inserted.Id, user.Id)
+	logger.Info("document found:", *doc)
+}
+
+func TestReadNil(t *testing.T) {
+	filter := bson.M{"_id": "NOT_FOUND"}
+	doc, err := Read[User](filter)
+	assert.NotNil(t, err)
+	assert.Nil(t, doc)
+	assert.Equal(t, err, errors.New("mongo: no documents in result"))
+}
+
+func TestListIn(t *testing.T) {
+	for i := 0; i < 10; i++ {
+		user := mockUser()
+		if i%2 == 0 {
+			user.Name = "even_name"
+		} else {
+			user.Name = "odd_name"
+		}
+		_, err := Insert(user)
+		assert.Nil(t, err)
+	}
+	names := []string{"even_name", "odd_name"}
+	filter := bson.M{"name": bson.M{"$in": names}}
+	docs, err := List[User](filter)
+	assert.Nil(t, err)
+	assert.NotNil(t, docs)
+	for _, doc := range docs {
+		assert.NotNil(t, docs)
+		if doc.Name != "even_name" && doc.Name != "odd_name" {
+			logger.Error(doc)
+			t.Error("doc.Name should match filter")
+		}
+	}
+}
+
+func TestInsertMany(t *testing.T) {
+	var users []User
+	for i := 0; i < 10; i++ {
+		user := mockUser()
+		user.Name = "bulk_written_username"
+		users = append(users, user)
+	}
+	inserted, err := InsertMany[User](users)
+	assert.Nil(t, err)
+	assert.NotNil(t, inserted)
+	for _, doc := range inserted {
+		assert.Equal(t, doc.Name, "bulk_written_username")
 	}
 }

@@ -43,12 +43,12 @@ func Bool(key string) *bool {
 	normalized := normalizeKey(key)
 	value, found := os.LookupEnv(normalized)
 	if !found {
-		logger.Error(fmt.Sprintf(".env %v not set", normalized))
+		logger.Error(".env %v not set", normalized)
 		return nil
 	}
 	b, err := strconv.ParseBool(value)
 	if err != nil {
-		logger.Error(fmt.Sprintf("cannot parse %v as bool %v", value, err))
+		logger.Error("cannot parse %v as bool %v", value, err)
 		return nil
 	}
 	return &b
@@ -57,6 +57,6 @@ func Bool(key string) *bool {
 func init() {
 	logger.Debug("loading .env...")
 	if err := godotenv.Load(); err != nil {
-		logger.Warn("no .env present: [%v]", err)
+		logger.Warn("no .env present", err)
 	}
 }

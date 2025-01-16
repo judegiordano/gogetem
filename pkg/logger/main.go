@@ -1,9 +1,21 @@
 package logger
 
-import "github.com/charmbracelet/log"
+import (
+	log "github.com/sirupsen/logrus"
+)
 
-func SetLogLevel(level log.Level) {
-	log.SetLevel(level)
+func init() {
+	log.SetFormatter(&log.TextFormatter{
+		DisableColors: false,
+		FullTimestamp: true,
+	})
+	log.SetFormatter(&log.JSONFormatter{
+		PrettyPrint: true,
+	})
+}
+
+func SetLogLevel(lvl log.Level) {
+	log.SetLevel(lvl)
 }
 
 func GetLogLevel() log.Level {
@@ -11,21 +23,21 @@ func GetLogLevel() log.Level {
 }
 
 func Info(msg interface{}, keyvals ...interface{}) {
-	log.Info(msg, keyvals)
+	log.Infoln(msg, keyvals)
 }
 
 func Warn(msg interface{}, keyvals ...interface{}) {
-	log.Warn(msg, keyvals)
+	log.Warnln(msg, keyvals)
 }
 
 func Debug(msg interface{}, keyvals ...interface{}) {
-	log.Debug(msg, keyvals)
+	log.Debugln(msg, keyvals)
 }
 
 func Error(msg interface{}, keyvals ...interface{}) {
-	log.Error(msg, keyvals)
+	log.Errorln(msg, keyvals)
 }
 
 func Fatal(msg interface{}, keyvals ...interface{}) {
-	log.Fatal(msg, keyvals)
+	log.Fatalln(msg, keyvals)
 }

@@ -3,12 +3,13 @@ package logger
 import (
 	"testing"
 
-	"github.com/charmbracelet/log"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSetLogLevel(t *testing.T) {
-	SetLogLevel(log.DebugLevel)
+	SetLogLevel(logrus.DebugLevel)
 	lvl := GetLogLevel()
-	assert.Equal(t, lvl, log.DebugLevel)
+	Debug("you should see this :)")
+	assert.Equal(t, lvl, logrus.DebugLevel)
 }
