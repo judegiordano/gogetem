@@ -193,3 +193,25 @@ func DeleteMany[model interface{}](filter interface{}, opts ...*options.DeleteOp
 	}
 	return result, nil
 }
+
+func EstimatedCount[model interface{}](opts ...*options.EstimatedDocumentCountOptions) (*int64, error) {
+	coll, ctx, cancel := collection[model]()
+	defer cancel()
+	result, err := coll.EstimatedDocumentCount(ctx, opts...)
+	if err != nil {
+		logger.Error("[MONGO ESTIMATED_COUNT]", err)
+		return nil, err
+	}
+	return &result, nil
+}
+
+func Count[model interface{}](filter interface{}, opts ...*options.CountOptions) (*int64, error) {
+	coll, ctx, cancel := collection[model]()
+	defer cancel()
+	result, err := coll.CountDocuments(ctx, filter, opts...)
+	if err != nil {
+		logger.Error("[MONGO COUNT]", err)
+		return nil, err
+	}
+	return &result, nil
+}

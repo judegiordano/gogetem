@@ -245,3 +245,35 @@ func TestDeleteMany(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Equal(t, err, errors.New("mongo: no documents in result"))
 }
+
+func TestEstimatedCount(t *testing.T) {
+	var users []User
+	for i := 0; i < 10; i++ {
+		user := mockUser()
+		users = append(users, user)
+	}
+	InsertMany[User](users)
+
+	count, err := EstimatedCount[User]()
+	assert.Nil(t, err)
+	assert.NotNil(t, count)
+	assert.True(t, *count >= 10)
+}
+
+func TestCount(t *testing.T) {
+	var users []User
+	n, _ := nanoid.New()
+
+	for i := 0; i < 10; i++ {
+		user := mockUser()
+		user.Name = n
+		users = append(users, user)
+	}
+	InsertMany[User](users)
+
+	filter := bson.M{"name": n}
+	count, err := Count[User](filter)
+	assert.Nil(t, err)
+	assert.NotNil(t, count)
+	assert.True(t, *count == 10)
+}
