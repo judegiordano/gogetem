@@ -158,17 +158,90 @@ func TestInsertMany(t *testing.T) {
 
 func TestUpdateOne(t *testing.T) {
 	user := mockUser()
+	user.CreatedAt = time.Now().UTC().AddDate(0, 0, -1)
+	user.UpdatedAt = time.Now().UTC().AddDate(0, 0, -1)
 	inserted, err := Insert[User](user)
 	assert.Nil(t, err)
 	assert.NotNil(t, inserted)
 	// update
 	filter := bson.M{"_id": inserted.Id}
 	updates := bson.M{
-		"$set": bson.M{"name": "new_name"},
+		"$set": bson.M{
+			"name":       "new_name",
+			"updated_at": time.Now().UTC(),
+		},
 	}
 	updated, err := UpdateOne[User](filter, updates)
 	assert.Nil(t, err)
 	assert.NotNil(t, updated)
 	assert.Equal(t, updated.Name, "new_name")
 	assert.Equal(t, updated.Id, inserted.Id)
+	assert.True(t, updated.UpdatedAt.After(inserted.UpdatedAt))
+}
+
+func TestUpdateMany(t *testing.T) {
+	var users []User
+	n, _ := nanoid.New()
+	for i := 0; i < 10; i++ {
+		user := mockUser()
+		user.Name = n
+		users = append(users, user)
+	}
+	InsertMany[User](users)
+
+	filter := bson.M{"name": n}
+	newName, _ := nanoid.New()
+	updates := bson.M{
+		"$set": bson.M{
+			"name":       newName,
+			"updated_at": time.Now().UTC(),
+		},
+	}
+	updated, err := UpdateMany[User](filter, updates)
+	assert.Nil(t, err)
+	assert.Equal(t, updated.MatchedCount, int64(10))
+	assert.Equal(t, updated.ModifiedCount, int64(10))
+}
+
+func TestDeleteOne(t *testing.T) {
+	user := mockUser()
+	n, _ := nanoid.New()
+	user.Name = n
+	inserted, err := Insert[User](user)
+	assert.Nil(t, err)
+	// delete
+	filter := bson.M{"name": inserted.Name}
+	removed, err := Delete[User](filter)
+	assert.Nil(t, err)
+	assert.Equal(t, removed.Id, inserted.Id)
+	assert.Equal(t, removed.Name, inserted.Name)
+
+	// user should not exist
+	doc, err := Read[User](filter)
+	assert.Nil(t, doc)
+	assert.NotNil(t, err)
+	assert.Equal(t, err, errors.New("mongo: no documents in result"))
+}
+
+func TestDeleteMany(t *testing.T) {
+	var users []User
+	n, _ := nanoid.New()
+	for i := 0; i < 10; i++ {
+		user := mockUser()
+		user.Name = n
+		users = append(users, user)
+	}
+	InsertMany[User](users)
+
+	// delete
+	filter := bson.M{"name": n}
+	removed, err := DeleteMany[User](filter)
+	assert.Nil(t, err)
+	assert.Equal(t, removed.DeletedCount, int64(10))
+
+	// user should not exist
+	doc, err := Read[User](filter)
+	assert.Nil(t, doc)
+	assert.NotNil(t, err)
+	assert.Equal(t, err, errors.New("mongo: no documents in result"))
 }

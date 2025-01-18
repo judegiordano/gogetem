@@ -63,11 +63,16 @@ func collectionName[model interface{}]() string {
 	return snake
 }
 
-func List[model interface{}](filter interface{}, opts ...*options.FindOptions) ([]model, error) {
+func collection[model interface{}]() (*mongo.Collection, context.Context, context.CancelFunc) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	name := collectionName[model]()
+	coll := Client.Database(*Database).Collection(name)
+	return coll, ctx, cancel
+}
+
+func List[model interface{}](filter interface{}, opts ...*options.FindOptions) ([]model, error) {
+	coll, ctx, cancel := collection[model]()
 	defer cancel()
-	collName := collectionName[model]()
-	coll := Client.Database(*Database).Collection(collName)
 	var results []model
 	cursor, err := coll.Find(ctx, filter, opts...)
 	if err != nil {
@@ -82,10 +87,8 @@ func List[model interface{}](filter interface{}, opts ...*options.FindOptions) (
 }
 
 func Insert[model interface{}](document model, opts ...*options.InsertOneOptions) (*model, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	coll, ctx, cancel := collection[model]()
 	defer cancel()
-	collName := collectionName[model]()
-	coll := Client.Database(*Database).Collection(collName)
 	_, err := coll.InsertOne(ctx, document, opts...)
 	if err != nil {
 		logger.Error("[MONGO INSERT]", err)
@@ -95,10 +98,8 @@ func Insert[model interface{}](document model, opts ...*options.InsertOneOptions
 }
 
 func Read[model interface{}](filter interface{}, opts ...*options.FindOneOptions) (*model, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	coll, ctx, cancel := collection[model]()
 	defer cancel()
-	collName := collectionName[model]()
-	coll := Client.Database(*Database).Collection(collName)
 	var out model
 	result := coll.FindOne(ctx, filter, opts...)
 	if result == nil {
@@ -113,10 +114,8 @@ func Read[model interface{}](filter interface{}, opts ...*options.FindOneOptions
 }
 
 func InsertMany[model interface{}](docs []model, opts ...*options.InsertManyOptions) ([]model, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	coll, ctx, cancel := collection[model]()
 	defer cancel()
-	collName := collectionName[model]()
-	coll := Client.Database(*Database).Collection(collName)
 	bson := make([]interface{}, len(docs))
 	for i, v := range docs {
 		bson[i] = v
@@ -130,10 +129,8 @@ func InsertMany[model interface{}](docs []model, opts ...*options.InsertManyOpti
 }
 
 func UpdateOne[model interface{}](filter interface{}, updates interface{}, opts ...*options.FindOneAndUpdateOptions) (*model, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	coll, ctx, cancel := collection[model]()
 	defer cancel()
-	collName := collectionName[model]()
-	coll := Client.Database(*Database).Collection(collName)
 	var out model
 	after := options.After
 	options := append(opts, &options.FindOneAndUpdateOptions{
@@ -149,4 +146,50 @@ func UpdateOne[model interface{}](filter interface{}, updates interface{}, opts 
 		return nil, err
 	}
 	return &out, nil
+}
+
+func UpdateMany[model interface{}](filter interface{}, updates interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
+	coll, ctx, cancel := collection[model]()
+	defer cancel()
+	result, err := coll.UpdateMany(ctx, filter, updates, opts...)
+	if err != nil {
+		logger.Error("[MONGO UPDATE_MANY]", err)
+		return nil, err
+	}
+	if result == nil {
+		logger.Error("[MONGO UPDATE_MANY]", "error updating many")
+		return nil, errors.New("error updating many")
+	}
+	return result, nil
+}
+
+func Delete[model interface{}](filter interface{}, opts ...*options.FindOneAndDeleteOptions) (*model, error) {
+	coll, ctx, cancel := collection[model]()
+	defer cancel()
+	var out model
+	result := coll.FindOneAndDelete(ctx, filter, opts...)
+	if result == nil {
+		logger.Error("[MONGO DELETE]", "no documents returned")
+		return nil, errors.New("no document found")
+	}
+	if err := result.Decode(&out); err != nil {
+		logger.Error("[MONGO DELETE]", err)
+		return nil, err
+	}
+	return &out, nil
+}
+
+func DeleteMany[model interface{}](filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
+	coll, ctx, cancel := collection[model]()
+	defer cancel()
+	result, err := coll.DeleteMany(ctx, filter, opts...)
+	if err != nil {
+		logger.Error("[MONGO DELETE_MANY]", err)
+		return nil, err
+	}
+	if result == nil {
+		logger.Error("[MONGO DELETE_MANY]", "error deleting many")
+		return nil, errors.New("error deleting many")
+	}
+	return result, nil
 }
