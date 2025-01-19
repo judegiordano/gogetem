@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang-module/carbon"
 	"github.com/judegiordano/gogetem/pkg/logger"
 	"github.com/judegiordano/gogetem/pkg/nanoid"
 	"github.com/stretchr/testify/assert"
@@ -61,8 +62,8 @@ func mockUser() User {
 			Avavtar:     8945769,
 		}},
 		Balance:   200.64,
-		CreatedAt: time.Now().UTC(),
-		UpdatedAt: time.Now().UTC(),
+		CreatedAt: carbon.Now().Carbon2Time().UTC(),
+		UpdatedAt: carbon.Now().Carbon2Time().UTC(),
 	}
 }
 
@@ -168,8 +169,8 @@ func TestInsertMany(t *testing.T) {
 
 func TestUpdateOne(t *testing.T) {
 	user := mockUser()
-	user.CreatedAt = time.Now().UTC().AddDate(0, 0, -1)
-	user.UpdatedAt = time.Now().UTC().AddDate(0, 0, -1)
+	user.CreatedAt = carbon.Yesterday().Carbon2Time().UTC()
+	user.UpdatedAt = carbon.Yesterday().Carbon2Time().UTC()
 	inserted, err := Insert[User](user)
 	assert.Nil(t, err)
 	assert.NotNil(t, inserted)
@@ -178,7 +179,7 @@ func TestUpdateOne(t *testing.T) {
 	updates := Bson{
 		"$set": Bson{
 			"name":       "new_name",
-			"updated_at": time.Now().UTC(),
+			"updated_at": carbon.Now().Carbon2Time().UTC(),
 		},
 	}
 	updated, err := UpdateOne[User](filter, updates)
@@ -204,7 +205,7 @@ func TestUpdateMany(t *testing.T) {
 	updates := Bson{
 		"$set": Bson{
 			"name":       newName,
-			"updated_at": time.Now().UTC(),
+			"updated_at": carbon.Now().Carbon2Time().UTC(),
 		},
 	}
 	updated, err := UpdateMany[User](filter, updates)
