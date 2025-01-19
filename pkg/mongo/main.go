@@ -20,6 +20,8 @@ import (
 var Client *mongo.Client
 var Database *string
 
+type Bson bson.M
+
 func init() {
 	if Client != nil {
 		logger.Debug("[MONGO CONNECTION]", "reusing existing client")
@@ -118,7 +120,7 @@ func ReadById[model interface{}](_id string, opts ...*options.FindOneOptions) (*
 	coll, ctx, cancel := collection[model]()
 	defer cancel()
 	var out model
-	result := coll.FindOne(ctx, bson.M{"_id": _id}, opts...)
+	result := coll.FindOne(ctx, Bson{"_id": _id}, opts...)
 	if result == nil {
 		logger.Error("[MONGO READ_BY_ID]", "no document returned")
 		return nil, errors.New("no document found")

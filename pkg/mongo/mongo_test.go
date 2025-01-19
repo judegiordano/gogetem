@@ -8,7 +8,6 @@ import (
 	"github.com/judegiordano/gogetem/pkg/logger"
 	"github.com/judegiordano/gogetem/pkg/nanoid"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 type Address struct {
@@ -89,7 +88,7 @@ func TestInsertOne(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	docs, err := List[User](bson.D{})
+	docs, err := List[User](Bson{})
 	assert.Nil(t, err)
 	for _, doc := range docs {
 		assert.NotNil(t, doc.Id)
@@ -101,7 +100,7 @@ func TestRead(t *testing.T) {
 	inserted, err := Insert[User](user)
 	assert.Nil(t, err)
 	// read
-	filter := bson.M{"_id": inserted.Id}
+	filter := Bson{"_id": inserted.Id}
 	doc, err := Read[User](filter)
 	assert.Nil(t, err)
 	assert.Equal(t, doc.Id, inserted.Id, user.Id)
@@ -120,7 +119,7 @@ func TestReadById(t *testing.T) {
 }
 
 func TestReadNil(t *testing.T) {
-	filter := bson.M{"_id": "NOT_FOUND"}
+	filter := Bson{"_id": "NOT_FOUND"}
 	doc, err := Read[User](filter)
 	assert.NotNil(t, err)
 	assert.Nil(t, doc)
@@ -139,7 +138,7 @@ func TestListIn(t *testing.T) {
 		assert.Nil(t, err)
 	}
 	names := []string{"even_name", "odd_name"}
-	filter := bson.M{"name": bson.M{"$in": names}}
+	filter := Bson{"name": Bson{"$in": names}}
 	docs, err := List[User](filter)
 	assert.Nil(t, err)
 	assert.NotNil(t, docs)
@@ -175,9 +174,9 @@ func TestUpdateOne(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, inserted)
 	// update
-	filter := bson.M{"_id": inserted.Id}
-	updates := bson.M{
-		"$set": bson.M{
+	filter := Bson{"_id": inserted.Id}
+	updates := Bson{
+		"$set": Bson{
 			"name":       "new_name",
 			"updated_at": time.Now().UTC(),
 		},
@@ -200,10 +199,10 @@ func TestUpdateMany(t *testing.T) {
 	}
 	InsertMany[User](users)
 
-	filter := bson.M{"name": n}
+	filter := Bson{"name": n}
 	newName, _ := nanoid.New()
-	updates := bson.M{
-		"$set": bson.M{
+	updates := Bson{
+		"$set": Bson{
 			"name":       newName,
 			"updated_at": time.Now().UTC(),
 		},
@@ -221,7 +220,7 @@ func TestDeleteOne(t *testing.T) {
 	inserted, err := Insert[User](user)
 	assert.Nil(t, err)
 	// delete
-	filter := bson.M{"name": inserted.Name}
+	filter := Bson{"name": inserted.Name}
 	removed, err := Delete[User](filter)
 	assert.Nil(t, err)
 	assert.Equal(t, removed.Id, inserted.Id)
@@ -245,7 +244,7 @@ func TestDeleteMany(t *testing.T) {
 	InsertMany[User](users)
 
 	// delete
-	filter := bson.M{"name": n}
+	filter := Bson{"name": n}
 	removed, err := DeleteMany[User](filter)
 	assert.Nil(t, err)
 	assert.Equal(t, removed.DeletedCount, int64(10))
@@ -282,7 +281,7 @@ func TestCount(t *testing.T) {
 	}
 	InsertMany[User](users)
 
-	filter := bson.M{"name": n}
+	filter := Bson{"name": n}
 	count, err := Count[User](filter)
 	assert.Nil(t, err)
 	assert.NotNil(t, count)
