@@ -1,4 +1,4 @@
-package fiber_errors
+package fibererrors
 
 import (
 	"github.com/gofiber/fiber/v2"
