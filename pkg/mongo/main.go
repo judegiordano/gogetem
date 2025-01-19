@@ -11,6 +11,7 @@ import (
 
 	"github.com/judegiordano/gogetem/pkg/dotenv"
 	"github.com/judegiordano/gogetem/pkg/logger"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/mongo/driver/connstring"
@@ -38,7 +39,7 @@ func init() {
 	}
 	Database = &url.Database
 	opts := options.Client().ApplyURI(*uri)
-	logger.Info("connecting to", *opts.AppName)
+	logger.Debug("connecting to", *opts.AppName)
 	Client, err = mongo.Connect(ctx, opts)
 	if err != nil {
 		logger.Fatal("[MONGO CONNECTION]", err)
@@ -108,6 +109,22 @@ func Read[model interface{}](filter interface{}, opts ...*options.FindOneOptions
 	}
 	if err := result.Decode(&out); err != nil {
 		logger.Error("[MONGO READ]", err)
+		return nil, err
+	}
+	return &out, nil
+}
+
+func ReadById[model interface{}](_id string, opts ...*options.FindOneOptions) (*model, error) {
+	coll, ctx, cancel := collection[model]()
+	defer cancel()
+	var out model
+	result := coll.FindOne(ctx, bson.M{"_id": _id}, opts...)
+	if result == nil {
+		logger.Error("[MONGO READ_BY_ID]", "no document returned")
+		return nil, errors.New("no document found")
+	}
+	if err := result.Decode(&out); err != nil {
+		logger.Error("[MONGO READ_BY_ID]", err)
 		return nil, err
 	}
 	return &out, nil

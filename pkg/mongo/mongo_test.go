@@ -108,6 +108,17 @@ func TestRead(t *testing.T) {
 	logger.Info("document found:", *doc)
 }
 
+func TestReadById(t *testing.T) {
+	user := mockUser()
+	inserted, err := Insert[User](user)
+	assert.Nil(t, err)
+	// read
+	doc, err := ReadById[User](inserted.Id)
+	assert.Nil(t, err)
+	assert.Equal(t, doc.Id, inserted.Id, user.Id)
+	logger.Info("document found:", *doc)
+}
+
 func TestReadNil(t *testing.T) {
 	filter := bson.M{"_id": "NOT_FOUND"}
 	doc, err := Read[User](filter)

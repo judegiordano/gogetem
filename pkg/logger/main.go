@@ -1,10 +1,31 @@
 package logger
 
 import (
+	"strings"
+
+	"github.com/judegiordano/gogetem/pkg/dotenv"
 	log "github.com/sirupsen/logrus"
 )
 
+func level() log.Level {
+	lvl := dotenv.String("LOG_LEVEL")
+	if lvl == nil {
+		return log.ErrorLevel
+	}
+	switch strings.ToUpper(*lvl) {
+	case "DEBUG":
+		return log.DebugLevel
+	case "WARN":
+		return log.WarnLevel
+	case "INFO":
+		return log.InfoLevel
+	default:
+		return log.ErrorLevel
+	}
+}
+
 func init() {
+	log.SetLevel(level())
 	log.SetFormatter(&log.TextFormatter{
 		DisableColors: false,
 		FullTimestamp: true,
