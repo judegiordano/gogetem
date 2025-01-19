@@ -20,6 +20,8 @@ func parseCodeError(code int) string {
 		return "FORBIDDEN"
 	case 404:
 		return "NOT_FOUND"
+	case 429:
+		return "TOO_MANY_REQUESTS"
 	default:
 		return "INTERNAL_SERVER_ERROR"
 	}
@@ -48,6 +50,11 @@ func NotFound(c *fiber.Ctx, err error) error {
 func InternalServerError(c *fiber.Ctx, err error) error {
 	logger.Error("[INTERNAL SERVER ERROR]", err)
 	return c.Status(500).JSON(ErrorResponse{Error: parseCodeError(500), Message: err.Error()})
+}
+
+func TooManyRequests(c *fiber.Ctx, err error) error {
+	logger.Error("[TOO MANY REQUESTS]", err)
+	return c.Status(429).JSON(ErrorResponse{Error: parseCodeError(429), Message: err.Error()})
 }
 
 func ErrorHandler(ctx *fiber.Ctx, err error) error {
