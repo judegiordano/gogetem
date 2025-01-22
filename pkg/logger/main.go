@@ -10,7 +10,7 @@ import (
 func level() log.Level {
 	lvl := dotenv.String("LOG_LEVEL")
 	if lvl == nil {
-		return log.ErrorLevel
+		return log.InfoLevel
 	}
 	switch strings.ToUpper(*lvl) {
 	case "DEBUG":
