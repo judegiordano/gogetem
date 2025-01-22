@@ -11,6 +11,7 @@ import (
 
 	"github.com/judegiordano/gogetem/pkg/dotenv"
 	"github.com/judegiordano/gogetem/pkg/logger"
+	"github.com/rs/xid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -71,6 +72,11 @@ func collection[model interface{}]() (*mongo.Collection, context.Context, contex
 	name := collectionName[model]()
 	coll := Client.Database(*Database).Collection(name)
 	return coll, ctx, cancel
+}
+
+func ObjectId() string {
+	guid := xid.New()
+	return guid.String()
 }
 
 func List[model interface{}](filter interface{}, opts ...*options.FindOptions) ([]model, error) {

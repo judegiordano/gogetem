@@ -18,7 +18,7 @@ type Address struct {
 
 type Profile struct {
 	Username    string  `bson:"username,omitempty" json:"username,omitempty"`
-	Avavtar     int     `bson:"avatar,omitempty" json:"avatar,omitempty"`
+	Avatar      int     `bson:"avatar,omitempty" json:"avatar,omitempty"`
 	OldUsername *string `bson:"old_username" json:"old_username"`
 }
 
@@ -44,7 +44,7 @@ func mockUser() User {
 	*u = "old_username"
 	return User{
 		Id:      id,
-		Name:    "judeboy",
+		Name:    "john",
 		Age:     27,
 		Enabled: true,
 		Hobbies: []string{"code", "video games", "travel"},
@@ -53,18 +53,22 @@ func mockUser() User {
 			Address: 123,
 		},
 		Profiles: []Profile{{
-			Username:    "judeboy",
+			Username:    "john",
 			OldUsername: nil,
-			Avavtar:     162534,
+			Avatar:      162534,
 		}, {
-			Username:    "judeboy_2",
+			Username:    "john_2",
 			OldUsername: u,
-			Avavtar:     8945769,
+			Avatar:      8945769,
 		}},
 		Balance:   200.64,
 		CreatedAt: carbon.Now().Carbon2Time().UTC(),
 		UpdatedAt: carbon.Now().Carbon2Time().UTC(),
 	}
+}
+
+func TestObjectId(t *testing.T) {
+	assert.NotEqual(t, ObjectId(), ObjectId())
 }
 
 func TestCollectionName(t *testing.T) {
@@ -188,6 +192,59 @@ func TestUpdateOne(t *testing.T) {
 	assert.Equal(t, updated.Name, "new_name")
 	assert.Equal(t, updated.Id, inserted.Id)
 	assert.True(t, updated.UpdatedAt.After(inserted.UpdatedAt))
+}
+
+func TestPushToArray(t *testing.T) {
+	user := mockUser()
+	user.CreatedAt = carbon.Yesterday().Carbon2Time().UTC()
+	user.UpdatedAt = carbon.Yesterday().Carbon2Time().UTC()
+	inserted, err := Insert[User](user)
+	assert.Nil(t, err)
+	assert.NotNil(t, inserted)
+	// update
+	filter := Bson{"_id": inserted.Id}
+	updates := Bson{
+		"$set": Bson{
+			"name":       "new_array_name",
+			"updated_at": carbon.Now().Carbon2Time().UTC(),
+		},
+		"$push": Bson{
+			"hobbies": Bson{"$each": []string{"ayo", "pause"}},
+		},
+	}
+	updated, err := UpdateOne[User](filter, updates)
+	assert.Nil(t, err)
+	assert.NotNil(t, updated)
+	assert.Equal(t, updated.Name, "new_array_name")
+	assert.Equal(t, updated.Id, inserted.Id)
+	assert.True(t, updated.UpdatedAt.After(inserted.UpdatedAt))
+	assert.True(t, len(updated.Hobbies) == 5)
+	assert.Equal(t, updated.Hobbies, []string{"code", "video games", "travel", "ayo", "pause"})
+}
+
+func TestIncrement(t *testing.T) {
+	user := mockUser()
+	user.CreatedAt = carbon.Yesterday().Carbon2Time().UTC()
+	user.UpdatedAt = carbon.Yesterday().Carbon2Time().UTC()
+	inserted, err := Insert[User](user)
+	assert.Nil(t, err)
+	assert.NotNil(t, inserted)
+	// update
+	filter := Bson{"_id": inserted.Id}
+	updates := Bson{
+		"$set": Bson{
+			"name":       "new_int_array",
+			"updated_at": carbon.Now().Carbon2Time().UTC(),
+		},
+		"$inc": Bson{"age": 1},
+	}
+	updated, err := UpdateOne[User](filter, updates)
+	assert.Nil(t, err)
+	assert.NotNil(t, updated)
+	assert.Equal(t, updated.Name, "new_int_array")
+	assert.Equal(t, updated.Id, inserted.Id)
+	assert.True(t, updated.UpdatedAt.After(inserted.UpdatedAt))
+	assert.True(t, updated.Age == inserted.Age+1)
 }
 
 func TestUpdateMany(t *testing.T) {
