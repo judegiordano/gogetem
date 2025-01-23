@@ -38,6 +38,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
+	github.com/muesli/cache2go v0.0.0-20221011235721-518229cd8021 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.3.0 // indirect
 	github.com/rs/xid v1.6.0 // indirect
