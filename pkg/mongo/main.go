@@ -91,6 +91,9 @@ func List[model interface{}](filter interface{}, opts ...*options.FindOptions) (
 		logger.Error("[MONGO LIST CURSOR]", err)
 		return results, err
 	}
+	if results == nil {
+		results = []model{}
+	}
 	return results, nil
 }
 
@@ -148,6 +151,9 @@ func InsertMany[model interface{}](docs []model, opts ...*options.InsertManyOpti
 	if err != nil {
 		logger.Error("[MONGO INSERT MANY]", err)
 		return nil, err
+	}
+	if docs == nil {
+		docs = []model{}
 	}
 	return docs, nil
 }
