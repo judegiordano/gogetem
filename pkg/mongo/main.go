@@ -22,6 +22,18 @@ var Client *mongo.Client
 var Database *string
 
 type Bson bson.M
+type IndexBatch struct {
+	v    int
+	key  Bson
+	name string
+	ns   string
+}
+
+type Document struct {
+	Id        string    `bson:"_id,omitempty" json:"id"`
+	CreatedAt time.Time `bson:"created_at,omitempty" json:"created_at"`
+	UpdatedAt time.Time `bson:"updated_at,omitempty" json:"updated_at"`
+}
 
 func init() {
 	if Client != nil {
@@ -81,18 +93,15 @@ func ObjectId() string {
 func List[model interface{}](filter interface{}, opts ...*options.FindOptions) ([]model, error) {
 	coll, ctx, cancel := collection[model]()
 	defer cancel()
-	var results []model
 	cursor, err := coll.Find(ctx, filter, opts...)
 	if err != nil {
 		logger.Error("[MONGO LIST]", err)
-		return results, err
+		return []model{}, err
 	}
+	results := make([]model, cursor.RemainingBatchLength())
 	if err = cursor.All(ctx, &results); err != nil {
 		logger.Error("[MONGO LIST CURSOR]", err)
-		return results, err
-	}
-	if results == nil {
-		results = []model{}
+		return []model{}, err
 	}
 	return results, nil
 }
@@ -151,9 +160,6 @@ func InsertMany[model interface{}](docs []model, opts ...*options.InsertManyOpti
 	if err != nil {
 		logger.Error("[MONGO INSERT MANY]", err)
 		return nil, err
-	}
-	if docs == nil {
-		docs = []model{}
 	}
 	return docs, nil
 }
@@ -244,4 +250,57 @@ func Count[model interface{}](filter interface{}, opts ...*options.CountOptions)
 		return nil, err
 	}
 	return &result, nil
+}
+
+func CreateIndex[model interface{}](index mongo.IndexModel, opts ...*options.CreateIndexesOptions) (*string, error) {
+	coll, ctx, cancel := collection[model]()
+	defer cancel()
+	idx, err := coll.Indexes().CreateOne(ctx, index, opts...)
+	if err != nil {
+		logger.Error("[MONGO CREATE INDEX]", err)
+		return nil, err
+	}
+	return &idx, nil
+}
+
+func DropIndex[model interface{}](index string, opts ...*options.DropIndexesOptions) (*string, error) {
+	coll, ctx, cancel := collection[model]()
+	defer cancel()
+	_, err := coll.Indexes().DropOne(ctx, index, opts...)
+	if err != nil {
+		logger.Error("[MONGO DROP INDEX]", err)
+		return nil, err
+	}
+	return &index, nil
+}
+
+func ListIndexes[model interface{}](opts ...*options.ListIndexesOptions) ([]IndexBatch, error) {
+	coll, ctx, cancel := collection[model]()
+	defer cancel()
+	var idx_raw []bson.M
+	cursor, err := coll.Indexes().List(ctx, opts...)
+	if err != nil {
+		logger.Error("[MONGO LIST INDEXES]", err)
+		return nil, err
+	}
+	if err = cursor.All(ctx, &idx_raw); err != nil {
+		logger.Error("[MONGO LIST INDEXES CURSOR]", err)
+		return nil, err
+	}
+
+	var idx_batches []IndexBatch
+	for _, index := range idx_raw {
+		v, _ := index["v"].(int32)
+		key, _ := index["key"].(Bson)
+		name, _ := index["name"].(string)
+		ns, _ := index["ns"].(string)
+
+		idx_batches = append(idx_batches, IndexBatch{
+			v:    int(v),
+			key:  key,
+			name: name,
+			ns:   ns,
+		})
+	}
+	return idx_batches, nil
 }

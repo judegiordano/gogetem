@@ -9,6 +9,8 @@ import (
 	"github.com/judegiordano/gogetem/pkg/logger"
 	"github.com/judegiordano/gogetem/pkg/nanoid"
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Address struct {
@@ -344,4 +346,53 @@ func TestCount(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, count)
 	assert.True(t, *count == 10)
+}
+
+func TestCreateIndex(t *testing.T) {
+	idx_name := "name_idx"
+	opts := mongo.IndexModel{
+		Keys: Bson{"name": 1},
+		Options: &options.IndexOptions{
+			Name: &idx_name,
+		},
+	}
+	idx, err := CreateIndex[User](opts)
+	assert.Nil(t, err)
+	assert.NotNil(t, idx)
+	assert.Equal(t, *idx, idx_name)
+}
+
+func TestDropIndex(t *testing.T) {
+	idx_name := "name_idx"
+	opts := mongo.IndexModel{
+		Keys: Bson{"name": 1},
+		Options: &options.IndexOptions{
+			Name: &idx_name,
+		},
+	}
+	idx, err := CreateIndex[User](opts)
+	assert.Nil(t, err)
+	assert.NotNil(t, idx)
+	assert.Equal(t, *idx, idx_name)
+
+	//
+	idx, err = DropIndex[User](idx_name)
+	assert.Nil(t, err)
+	assert.NotNil(t, idx)
+	assert.Equal(t, *idx, idx_name)
+}
+
+func TestListIndexes(t *testing.T) {
+	idx, err := ListIndexes[User]()
+	assert.Nil(t, err)
+	assert.NotNil(t, idx)
+
+	exists := false
+	for _, v := range idx {
+		if v.name == "_id_" {
+			exists = true
+			break
+		}
+	}
+	assert.True(t, exists)
 }
