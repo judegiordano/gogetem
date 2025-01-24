@@ -42,7 +42,6 @@ func init() {
 	}
 	Database = &url.Database
 	opts := options.Client().ApplyURI(*uri)
-	logger.Debug("connecting to", *opts.AppName)
 	Client, err = mongo.Connect(ctx, opts)
 	if err != nil {
 		logger.Fatal("[MONGO CONNECTION]", err)
