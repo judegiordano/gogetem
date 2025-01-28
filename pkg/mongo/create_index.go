@@ -7,8 +7,10 @@ import (
 )
 
 type CreateIndexesOptions = options.CreateIndexesOptions
+type IndexModel = mongo.IndexModel
+type IndexOptions = options.IndexOptions
 
-func CreateIndex[model interface{}](index mongo.IndexModel, opts ...*CreateIndexesOptions) (*string, error) {
+func CreateIndex[model interface{}](index IndexModel, opts ...*CreateIndexesOptions) (*string, error) {
 	coll, ctx, cancel := collection[model]()
 	defer cancel()
 	idx, err := coll.Indexes().CreateOne(ctx, index, opts...)

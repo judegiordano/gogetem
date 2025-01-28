@@ -9,8 +9,6 @@ import (
 	"github.com/judegiordano/gogetem/pkg/logger"
 	"github.com/judegiordano/gogetem/pkg/nanoid"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Address struct {
@@ -350,9 +348,9 @@ func TestCount(t *testing.T) {
 
 func TestCreateIndex(t *testing.T) {
 	idx_name := "name_idx"
-	opts := mongo.IndexModel{
+	opts := IndexModel{
 		Keys: Bson{"name": 1},
-		Options: &options.IndexOptions{
+		Options: &IndexOptions{
 			Name: &idx_name,
 		},
 	}
@@ -364,9 +362,9 @@ func TestCreateIndex(t *testing.T) {
 
 func TestDropIndex(t *testing.T) {
 	idx_name := "name_idx"
-	opts := mongo.IndexModel{
+	opts := IndexModel{
 		Keys: Bson{"name": 1},
-		Options: &options.IndexOptions{
+		Options: &IndexOptions{
 			Name: &idx_name,
 		},
 	}
@@ -395,4 +393,21 @@ func TestListIndexes(t *testing.T) {
 		}
 	}
 	assert.True(t, exists)
+}
+
+func TestListLimit(t *testing.T) {
+	var users []User
+
+	for i := 0; i < 10; i++ {
+		user := mockUser()
+		users = append(users, user)
+	}
+	InsertMany(users)
+
+	limit := int64(5)
+	users, err := List[User](Bson{}, &FindOptions{
+		Limit: &limit,
+	})
+	assert.Nil(t, err)
+	assert.True(t, len(users) == 5)
 }
