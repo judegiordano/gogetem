@@ -1,8 +1,6 @@
 package cache
 
-import (
-	"github.com/muesli/cache2go"
-)
+import "github.com/muesli/cache2go"
 
 var cache *cache2go.CacheTable
 

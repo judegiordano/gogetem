@@ -93,8 +93,16 @@ func TestInsertOne(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
+	var users []User
+	for i := 0; i < 10; i++ {
+		user := mockUser()
+		users = append(users, user)
+	}
+	InsertMany(users)
+
 	docs, err := List[User](Bson{})
 	assert.Nil(t, err)
+	assert.True(t, len(docs) >= 1)
 	for _, doc := range docs {
 		assert.NotNil(t, doc.Id)
 	}
@@ -147,13 +155,28 @@ func TestListIn(t *testing.T) {
 	docs, err := List[User](filter)
 	assert.Nil(t, err)
 	assert.NotNil(t, docs)
+	assert.True(t, len(docs) >= 10)
 	for _, doc := range docs {
-		assert.NotNil(t, docs)
+		assert.NotNil(t, doc)
 		if doc.Name != "even_name" && doc.Name != "odd_name" {
 			logger.Error(doc)
 			t.Error("doc.Name should match filter")
 		}
 	}
+}
+
+func TestListEmpty(t *testing.T) {
+	var users []User
+	n, _ := nanoid.New()
+	for i := 0; i < 10; i++ {
+		user := mockUser()
+		users = append(users, user)
+	}
+	InsertMany(users)
+
+	docs, err := List[User](Bson{"name": n})
+	assert.Nil(t, err)
+	assert.True(t, len(docs) == 0)
 }
 
 func TestInsertMany(t *testing.T) {
@@ -410,4 +433,32 @@ func TestListLimit(t *testing.T) {
 	})
 	assert.Nil(t, err)
 	assert.True(t, len(users) == 5)
+}
+
+func TestAggregate(t *testing.T) {
+	var users []User
+	n, _ := nanoid.New()
+
+	for i := 0; i < 100; i++ {
+		user := mockUser()
+		user.Name = n
+		users = append(users, user)
+	}
+	InsertMany(users)
+
+	type AggregatedUsers struct {
+		Id   string `bson:"_id,omitempty" json:"id,omitempty"`
+		Name string `bson:"name,omitempty" json:"name,omitempty"`
+	}
+
+	pipeline := []Bson{
+		{"$match": Bson{"name": n}},
+		{"$project": Bson{"name": 1}},
+	}
+	results, err := Aggregate[User, AggregatedUsers](pipeline)
+	assert.Nil(t, err)
+	assert.True(t, len(results) == 100)
+	for _, doc := range results {
+		assert.Equal(t, doc.Name, n)
+	}
 }

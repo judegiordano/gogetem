@@ -11,14 +11,14 @@ func List[model interface{}](filter interface{}, opts ...*FindOptions) ([]model,
 	coll, ctx, cancel := collection[model]()
 	defer cancel()
 	cursor, err := coll.Find(ctx, filter, opts...)
+	var results = []model{}
 	if err != nil {
 		logger.Error("[MONGO LIST]", err)
-		return []model{}, err
+		return results, err
 	}
-	results := make([]model, cursor.RemainingBatchLength())
 	if err = cursor.All(ctx, &results); err != nil {
 		logger.Error("[MONGO LIST CURSOR]", err)
-		return []model{}, err
+		return results, err
 	}
 	return results, nil
 }
