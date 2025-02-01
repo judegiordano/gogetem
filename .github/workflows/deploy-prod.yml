@@ -40,3 +40,4 @@ jobs:
 
     env:
       MONGO_URI: 'mongodb://localhost:27017/gogetem-ci?readPreference=primary&appname=CICD&directConnection=true&ssl=false'
+      JWT_SECRET: 'terminal_secret'

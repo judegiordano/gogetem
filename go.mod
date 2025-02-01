@@ -33,15 +33,17 @@ require (
 	github.com/gobuffalo/envy v1.7.0 // indirect
 	github.com/gobuffalo/packd v0.3.0 // indirect
 	github.com/gobuffalo/packr v1.30.1 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
-	github.com/muesli/cache2go v0.0.0-20221011235721-518229cd8021 // indirect
+	github.com/mitchellh/mapstructure v1.5.0
+	github.com/muesli/cache2go v0.0.0-20221011235721-518229cd8021
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.3.0 // indirect
-	github.com/rs/xid v1.6.0 // indirect
+	github.com/rs/xid v1.6.0
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.51.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
