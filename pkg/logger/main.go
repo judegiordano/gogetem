@@ -1,18 +1,18 @@
 package logger
 
 import (
+	"os"
 	"strings"
 
-	"github.com/judegiordano/gogetem/pkg/dotenv"
 	log "github.com/sirupsen/logrus"
 )
 
 func level() log.Level {
-	lvl := dotenv.String("LOG_LEVEL")
-	if lvl == nil {
+	lvl := os.Getenv("LOG_LEVEL")
+	if lvl == "" {
 		return log.InfoLevel
 	}
-	switch strings.ToUpper(*lvl) {
+	switch strings.ToUpper(lvl) {
 	case "DEBUG":
 		return log.DebugLevel
 	case "WARN":

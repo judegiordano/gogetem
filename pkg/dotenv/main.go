@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/joho/godotenv"
+	"github.com/judegiordano/gogetem/pkg/logger"
 )
 
 func normalizeKey(k string) string {
@@ -12,6 +13,6 @@ func normalizeKey(k string) string {
 
 func init() {
 	if err := godotenv.Load(); err != nil {
-		// TODO: maybe log
+		logger.Warn("ENV NO .env FILE")
 	}
 }
