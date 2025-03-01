@@ -35,6 +35,10 @@ type User struct {
 	UpdatedAt time.Time `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
 }
 
+func (u User) CollectionName() string {
+	return "users"
+}
+
 func mockUser() User {
 	id, err := nanoid.New()
 	if err != nil {
@@ -72,7 +76,8 @@ func TestObjectId(t *testing.T) {
 }
 
 func TestCollectionName(t *testing.T) {
-	name := collectionName[User]()
+	var model User
+	name := model.CollectionName()
 	assert.Equal(t, name, "users")
 }
 
@@ -86,7 +91,7 @@ func TestDb(t *testing.T) {
 
 func TestInsertOne(t *testing.T) {
 	user := mockUser()
-	inserted, err := Insert[User](user)
+	inserted, err := Insert(user)
 	assert.Nil(t, err)
 	assert.NotNil(t, inserted)
 	assert.Equal(t, inserted.Id, user.Id)
@@ -94,7 +99,7 @@ func TestInsertOne(t *testing.T) {
 
 func TestList(t *testing.T) {
 	var users []User
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		user := mockUser()
 		users = append(users, user)
 	}
@@ -110,7 +115,7 @@ func TestList(t *testing.T) {
 
 func TestRead(t *testing.T) {
 	user := mockUser()
-	inserted, err := Insert[User](user)
+	inserted, err := Insert(user)
 	assert.Nil(t, err)
 	// read
 	filter := Bson{"_id": inserted.Id}
@@ -122,7 +127,7 @@ func TestRead(t *testing.T) {
 
 func TestReadById(t *testing.T) {
 	user := mockUser()
-	inserted, err := Insert[User](user)
+	inserted, err := Insert(user)
 	assert.Nil(t, err)
 	// read
 	doc, err := ReadById[User](inserted.Id)
@@ -140,7 +145,7 @@ func TestReadNil(t *testing.T) {
 }
 
 func TestListIn(t *testing.T) {
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		user := mockUser()
 		if i%2 == 0 {
 			user.Name = "even_name"
@@ -168,7 +173,7 @@ func TestListIn(t *testing.T) {
 func TestListEmpty(t *testing.T) {
 	var users []User
 	n, _ := nanoid.New()
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		user := mockUser()
 		users = append(users, user)
 	}
@@ -181,12 +186,12 @@ func TestListEmpty(t *testing.T) {
 
 func TestInsertMany(t *testing.T) {
 	var users []User
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		user := mockUser()
 		user.Name = "bulk_written_username"
 		users = append(users, user)
 	}
-	inserted, err := InsertMany[User](users)
+	inserted, err := InsertMany(users)
 	assert.Nil(t, err)
 	assert.NotNil(t, inserted)
 	for _, doc := range inserted {
@@ -198,7 +203,7 @@ func TestUpdateOne(t *testing.T) {
 	user := mockUser()
 	user.CreatedAt = carbon.Yesterday().Carbon2Time().UTC()
 	user.UpdatedAt = carbon.Yesterday().Carbon2Time().UTC()
-	inserted, err := Insert[User](user)
+	inserted, err := Insert(user)
 	assert.Nil(t, err)
 	assert.NotNil(t, inserted)
 	// update
@@ -221,7 +226,7 @@ func TestPushToArray(t *testing.T) {
 	user := mockUser()
 	user.CreatedAt = carbon.Yesterday().Carbon2Time().UTC()
 	user.UpdatedAt = carbon.Yesterday().Carbon2Time().UTC()
-	inserted, err := Insert[User](user)
+	inserted, err := Insert(user)
 	assert.Nil(t, err)
 	assert.NotNil(t, inserted)
 	// update
@@ -249,7 +254,7 @@ func TestIncrement(t *testing.T) {
 	user := mockUser()
 	user.CreatedAt = carbon.Yesterday().Carbon2Time().UTC()
 	user.UpdatedAt = carbon.Yesterday().Carbon2Time().UTC()
-	inserted, err := Insert[User](user)
+	inserted, err := Insert(user)
 	assert.Nil(t, err)
 	assert.NotNil(t, inserted)
 	// update
@@ -273,12 +278,12 @@ func TestIncrement(t *testing.T) {
 func TestUpdateMany(t *testing.T) {
 	var users []User
 	n, _ := nanoid.New()
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		user := mockUser()
 		user.Name = n
 		users = append(users, user)
 	}
-	InsertMany[User](users)
+	InsertMany(users)
 
 	filter := Bson{"name": n}
 	newName, _ := nanoid.New()
@@ -298,7 +303,7 @@ func TestDeleteOne(t *testing.T) {
 	user := mockUser()
 	n, _ := nanoid.New()
 	user.Name = n
-	inserted, err := Insert[User](user)
+	inserted, err := Insert(user)
 	assert.Nil(t, err)
 	// delete
 	filter := Bson{"name": inserted.Name}
@@ -317,12 +322,12 @@ func TestDeleteOne(t *testing.T) {
 func TestDeleteMany(t *testing.T) {
 	var users []User
 	n, _ := nanoid.New()
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		user := mockUser()
 		user.Name = n
 		users = append(users, user)
 	}
-	InsertMany[User](users)
+	InsertMany(users)
 
 	// delete
 	filter := Bson{"name": n}
@@ -339,11 +344,11 @@ func TestDeleteMany(t *testing.T) {
 
 func TestEstimatedCount(t *testing.T) {
 	var users []User
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		user := mockUser()
 		users = append(users, user)
 	}
-	InsertMany[User](users)
+	InsertMany(users)
 
 	count, err := EstimatedCount[User]()
 	assert.Nil(t, err)
@@ -355,12 +360,12 @@ func TestCount(t *testing.T) {
 	var users []User
 	n, _ := nanoid.New()
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		user := mockUser()
 		user.Name = n
 		users = append(users, user)
 	}
-	InsertMany[User](users)
+	InsertMany(users)
 
 	filter := Bson{"name": n}
 	count, err := Count[User](filter)
@@ -421,7 +426,7 @@ func TestListIndexes(t *testing.T) {
 func TestListLimit(t *testing.T) {
 	var users []User
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		user := mockUser()
 		users = append(users, user)
 	}
@@ -435,27 +440,31 @@ func TestListLimit(t *testing.T) {
 	assert.True(t, len(users) == 5)
 }
 
+type AggregatedUsers struct {
+	Id   string `bson:"_id,omitempty" json:"id,omitempty"`
+	Name string `bson:"name,omitempty" json:"name,omitempty"`
+}
+
+func (u AggregatedUsers) CollectionName() string {
+	return "users"
+}
+
 func TestAggregate(t *testing.T) {
 	var users []User
 	n, _ := nanoid.New()
 
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		user := mockUser()
 		user.Name = n
 		users = append(users, user)
 	}
 	InsertMany(users)
 
-	type AggregatedUsers struct {
-		Id   string `bson:"_id,omitempty" json:"id,omitempty"`
-		Name string `bson:"name,omitempty" json:"name,omitempty"`
-	}
-
 	pipeline := []Bson{
 		{"$match": Bson{"name": n}},
 		{"$project": Bson{"name": 1}},
 	}
-	results, err := Aggregate[User, AggregatedUsers](pipeline)
+	results, err := Aggregate[AggregatedUsers](pipeline)
 	assert.Nil(t, err)
 	assert.True(t, len(results) == 100)
 	for _, doc := range results {

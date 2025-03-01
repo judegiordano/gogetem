@@ -9,10 +9,10 @@ import (
 
 type FindOneAndUpdateOptions = options.FindOneAndUpdateOptions
 
-func UpdateOne[model interface{}](filter interface{}, updates interface{}, opts ...*FindOneAndUpdateOptions) (*model, error) {
-	coll, ctx, cancel := collection[model]()
+func UpdateOne[T Model](filter interface{}, updates interface{}, opts ...*FindOneAndUpdateOptions) (*T, error) {
+	var model T
+	coll, ctx, cancel := collection(model.CollectionName())
 	defer cancel()
-	var out model
 	after := options.After
 	options := append(opts, &FindOneAndUpdateOptions{
 		ReturnDocument: &after,
@@ -22,9 +22,9 @@ func UpdateOne[model interface{}](filter interface{}, updates interface{}, opts 
 		logger.Error("[MONGO UPDATE_ONE]", "no documents found")
 		return nil, errors.New("no document found")
 	}
-	if err := result.Decode(&out); err != nil {
+	if err := result.Decode(&model); err != nil {
 		logger.Error("[MONGO UPDATE_ONE]", err)
 		return nil, err
 	}
-	return &out, nil
+	return &model, nil
 }

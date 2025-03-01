@@ -7,11 +7,12 @@ import (
 
 type AggregateOptions = options.AggregateOptions
 
-func Aggregate[model, out interface{}](pipeline interface{}, opts ...*AggregateOptions) ([]out, error) {
-	coll, ctx, cancel := collection[model]()
+func Aggregate[T Model](pipeline interface{}, opts ...*AggregateOptions) ([]T, error) {
+	var model T
+	coll, ctx, cancel := collection(model.CollectionName())
 	defer cancel()
 	cursor, err := coll.Aggregate(ctx, pipeline, opts...)
-	var results = []out{}
+	var results = []T{}
 	if err != nil {
 		logger.Error("[MONGO AGGREGATE]", err)
 		return results, err

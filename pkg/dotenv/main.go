@@ -13,6 +13,6 @@ func normalizeKey(k string) string {
 
 func init() {
 	if err := godotenv.Load(); err != nil {
-		logger.Warn("ENV NO .env FILE")
+		logger.Warn("DOTENV", "NO .env FILE")
 	}
 }

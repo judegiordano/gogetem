@@ -7,8 +7,9 @@ import (
 
 type InsertManyOptions = options.InsertManyOptions
 
-func InsertMany[model interface{}](docs []model, opts ...*InsertManyOptions) ([]model, error) {
-	coll, ctx, cancel := collection[model]()
+func InsertMany[T Model](docs []T, opts ...*InsertManyOptions) ([]T, error) {
+	var model T
+	coll, ctx, cancel := collection(model.CollectionName())
 	defer cancel()
 	bson := make([]interface{}, len(docs))
 	for i, v := range docs {

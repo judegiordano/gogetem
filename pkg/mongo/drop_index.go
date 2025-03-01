@@ -7,8 +7,9 @@ import (
 
 type DropIndexesOptions = options.DropIndexesOptions
 
-func DropIndex[model interface{}](index string, opts ...*DropIndexesOptions) (*string, error) {
-	coll, ctx, cancel := collection[model]()
+func DropIndex[T Model](index string, opts ...*DropIndexesOptions) (*string, error) {
+	var model T
+	coll, ctx, cancel := collection(model.CollectionName())
 	defer cancel()
 	_, err := coll.Indexes().DropOne(ctx, index, opts...)
 	if err != nil {

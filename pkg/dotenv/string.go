@@ -10,7 +10,7 @@ func String(key string) *string {
 	normalized := normalizeKey(key)
 	value, found := os.LookupEnv(normalized)
 	if !found {
-		logger.Error("ENV VAR NOT FOUND", key)
+		logger.Warn("ENV VAR NOT FOUND", key)
 		return nil
 	}
 	return &value

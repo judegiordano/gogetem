@@ -9,18 +9,18 @@ import (
 
 type FindOneAndDeleteOptions = options.FindOneAndDeleteOptions
 
-func Delete[model interface{}](filter interface{}, opts ...*FindOneAndDeleteOptions) (*model, error) {
-	coll, ctx, cancel := collection[model]()
+func Delete[T Model](filter interface{}, opts ...*FindOneAndDeleteOptions) (*T, error) {
+	var model T
+	coll, ctx, cancel := collection(model.CollectionName())
 	defer cancel()
-	var out model
 	result := coll.FindOneAndDelete(ctx, filter, opts...)
 	if result == nil {
 		logger.Error("[MONGO DELETE]", "no documents returned")
 		return nil, errors.New("no document found")
 	}
-	if err := result.Decode(&out); err != nil {
+	if err := result.Decode(&model); err != nil {
 		logger.Error("[MONGO DELETE]", err)
 		return nil, err
 	}
-	return &out, nil
+	return &model, nil
 }

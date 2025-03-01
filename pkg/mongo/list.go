@@ -7,11 +7,12 @@ import (
 
 type FindOptions = options.FindOptions
 
-func List[model interface{}](filter interface{}, opts ...*FindOptions) ([]model, error) {
-	coll, ctx, cancel := collection[model]()
+func List[T Model](filter interface{}, opts ...*FindOptions) ([]T, error) {
+	var model T
+	coll, ctx, cancel := collection(model.CollectionName())
 	defer cancel()
 	cursor, err := coll.Find(ctx, filter, opts...)
-	var results = []model{}
+	var results = []T{}
 	if err != nil {
 		logger.Error("[MONGO LIST]", err)
 		return results, err

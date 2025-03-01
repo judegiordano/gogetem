@@ -11,8 +11,9 @@ import (
 type UpdateOptions = options.UpdateOptions
 type UpdateResult = mongo.UpdateResult
 
-func UpdateMany[model interface{}](filter interface{}, updates interface{}, opts ...*UpdateOptions) (*UpdateResult, error) {
-	coll, ctx, cancel := collection[model]()
+func UpdateMany[T Model](filter interface{}, updates interface{}, opts ...*UpdateOptions) (*UpdateResult, error) {
+	var model T
+	coll, ctx, cancel := collection(model.CollectionName())
 	defer cancel()
 	result, err := coll.UpdateMany(ctx, filter, updates, opts...)
 	if err != nil {

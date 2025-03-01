@@ -2,10 +2,6 @@ package mongo
 
 import (
 	"context"
-	"fmt"
-	"reflect"
-	"regexp"
-	"strings"
 	"time"
 
 	"github.com/judegiordano/gogetem/pkg/dotenv"
@@ -21,10 +17,8 @@ var Database *string
 
 type Bson bson.M
 
-type Document struct {
-	Id        string    `bson:"_id,omitempty" json:"id"`
-	CreatedAt time.Time `bson:"created_at,omitempty" json:"created_at"`
-	UpdatedAt time.Time `bson:"updated_at,omitempty" json:"updated_at"`
+type Model interface {
+	CollectionName() string
 }
 
 func init() {
@@ -52,27 +46,8 @@ func init() {
 	}
 }
 
-var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
-var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
-
-func toSnakeCase(str string) string {
-	snake := matchFirstCap.ReplaceAllString(str, "${1}_${2}")
-	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
-	return strings.ToLower(snake)
-}
-
-func collectionName[model interface{}]() string {
-	name := reflect.TypeOf((*model)(nil)).Elem().Name()
-	snake := toSnakeCase(name)
-	if !strings.HasSuffix(snake, "s") {
-		snake = fmt.Sprintf("%vs", snake)
-	}
-	return snake
-}
-
-func collection[model interface{}]() (*mongo.Collection, context.Context, context.CancelFunc) {
+func collection(name string) (*mongo.Collection, context.Context, context.CancelFunc) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	name := collectionName[model]()
 	coll := Client.Database(*Database).Collection(name)
 	return coll, ctx, cancel
 }

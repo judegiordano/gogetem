@@ -7,8 +7,8 @@ import (
 
 type InsertOneOptions = options.InsertOneOptions
 
-func Insert[model interface{}](document model, opts ...*InsertOneOptions) (*model, error) {
-	coll, ctx, cancel := collection[model]()
+func Insert[T Model](document T, opts ...*InsertOneOptions) (*T, error) {
+	coll, ctx, cancel := collection(document.CollectionName())
 	defer cancel()
 	_, err := coll.InsertOne(ctx, document, opts...)
 	if err != nil {

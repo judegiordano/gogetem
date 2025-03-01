@@ -162,7 +162,7 @@ func TestExpiration(t *testing.T) {
 	size := Set(k, v, exp)
 	assert.True(t, size >= 1)
 	// pause
-	time.Sleep(exp)
+	time.Sleep(time.Millisecond)
 
 	found, err := Get[string](k)
 	assert.Nil(t, found)

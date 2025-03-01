@@ -11,8 +11,9 @@ import (
 type DeleteOptions = options.DeleteOptions
 type DeleteResult = mongo.DeleteResult
 
-func DeleteMany[model interface{}](filter interface{}, opts ...*DeleteOptions) (*DeleteResult, error) {
-	coll, ctx, cancel := collection[model]()
+func DeleteMany[T Model](filter interface{}, opts ...*DeleteOptions) (*DeleteResult, error) {
+	var model T
+	coll, ctx, cancel := collection(model.CollectionName())
 	defer cancel()
 	result, err := coll.DeleteMany(ctx, filter, opts...)
 	if err != nil {

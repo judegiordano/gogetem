@@ -7,8 +7,9 @@ import (
 
 type CountOptions = options.CountOptions
 
-func Count[model interface{}](filter interface{}, opts ...*CountOptions) (*int64, error) {
-	coll, ctx, cancel := collection[model]()
+func Count[T Model](filter interface{}, opts ...*CountOptions) (*int64, error) {
+	var model T
+	coll, ctx, cancel := collection(model.CollectionName())
 	defer cancel()
 	result, err := coll.CountDocuments(ctx, filter, opts...)
 	if err != nil {

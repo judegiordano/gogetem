@@ -7,8 +7,9 @@ import (
 
 type EstimatedDocumentCountOptions = options.EstimatedDocumentCountOptions
 
-func EstimatedCount[model interface{}](opts ...*EstimatedDocumentCountOptions) (*int64, error) {
-	coll, ctx, cancel := collection[model]()
+func EstimatedCount[T Model](opts ...*EstimatedDocumentCountOptions) (*int64, error) {
+	var model T
+	coll, ctx, cancel := collection(model.CollectionName())
 	defer cancel()
 	result, err := coll.EstimatedDocumentCount(ctx, opts...)
 	if err != nil {

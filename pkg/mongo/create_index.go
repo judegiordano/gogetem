@@ -10,8 +10,9 @@ type CreateIndexesOptions = options.CreateIndexesOptions
 type IndexModel = mongo.IndexModel
 type IndexOptions = options.IndexOptions
 
-func CreateIndex[model interface{}](index IndexModel, opts ...*CreateIndexesOptions) (*string, error) {
-	coll, ctx, cancel := collection[model]()
+func CreateIndex[T Model](index IndexModel, opts ...*CreateIndexesOptions) (*string, error) {
+	var model T
+	coll, ctx, cancel := collection(model.CollectionName())
 	defer cancel()
 	idx, err := coll.Indexes().CreateOne(ctx, index, opts...)
 	if err != nil {

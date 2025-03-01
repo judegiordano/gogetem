@@ -15,8 +15,9 @@ type IndexBatch struct {
 	ns   string
 }
 
-func ListIndexes[model interface{}](opts ...*ListIndexesOptions) ([]IndexBatch, error) {
-	coll, ctx, cancel := collection[model]()
+func ListIndexes[T Model](opts ...*ListIndexesOptions) ([]IndexBatch, error) {
+	var model T
+	coll, ctx, cancel := collection(model.CollectionName())
 	defer cancel()
 	var idx_raw []bson.M
 	cursor, err := coll.Indexes().List(ctx, opts...)
